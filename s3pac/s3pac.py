@@ -19,7 +19,8 @@ def _json_from_pkg(pkg):
 
 # -----------------------------------------------------------------------------
 
-app = Flask(__name__)
+app = Flask(__name__, instance_path=os.getcwd(),
+                      instance_relative_config=True)
 app.config.from_pyfile("config.py")
 
 pkgdb = PackageDatabase(
