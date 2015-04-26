@@ -21,7 +21,7 @@ def _json_from_pkg(pkg):
 
 app = Flask(__name__, instance_path=os.getcwd(),
                       instance_relative_config=True)
-app.config.from_pyfile("config.py")
+app.config.from_pyfile("s3pac.conf.py")
 
 pkgdb = PackageDatabase(
     access_key_id = app.config.get('AWS_ACCESS_KEY_ID', None),
