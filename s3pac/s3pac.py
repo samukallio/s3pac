@@ -4,9 +4,9 @@ from dateutil import parser as dateparser
 from flask import Flask, Response, request, redirect, url_for, abort, send_file
 from werkzeug import secure_filename
 
-from model import DateTimeProperty
-from package import Package, write_database_file, write_signature_file
-from database import PackageDatabase
+from s3pac.model import DateTimeProperty
+from s3pac.package import Package, write_database_file, write_signature_file
+from s3pac.database import PackageDatabase
 
 # -----------------------------------------------------------------------------
 

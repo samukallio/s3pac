@@ -3,8 +3,8 @@ from dateutil import parser as dateparser
 import boto.sdb
 import boto.s3
 
-from model import LongProperty, StringProperty, DateTimeProperty
-from package import Package, read_package_file
+from s3pac.model import LongProperty, StringProperty, DateTimeProperty
+from s3pac.package import Package, read_package_file
 
 # -----------------------------------------------------------------------------
 

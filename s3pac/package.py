@@ -6,8 +6,8 @@ from stat import S_IFREG, S_IFDIR, S_IRWXU, \
                  S_IRUSR, S_IWUSR, S_IRGRP, \
                  S_IXGRP, S_IROTH, S_IXOTH
 
-from model import Model
-from model import LongProperty, StringProperty, DateTimeProperty
+from s3pac.model import Model
+from s3pac.model import LongProperty, StringProperty, DateTimeProperty
 
 class Package(Model):
     """Package metadata."""
