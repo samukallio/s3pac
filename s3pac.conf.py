@@ -1,4 +1,5 @@
 # Root directory for uploads and temporary files.
+# Relative to the server working directory.
 DATA_ROOT = "data"
 
 # Maximum upload size.
