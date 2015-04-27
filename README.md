@@ -8,6 +8,8 @@ Implemented as a Python WSGI server using Flask and Boto.
 - Boto
 - Flask
 - Werkzeug
+- Docopt (CLI)
+- Requests (CLI)
 
 # Installation
     python setup.py build
