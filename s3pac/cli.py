@@ -15,6 +15,7 @@ Options:
 import os, sys
 import json
 import requests
+from dateutil import parser as dateparser
 from docopt import docopt
 from urllib import parse as urlparse
 
@@ -42,6 +43,7 @@ def _print_package(pkg):
         validations.append("SHA256 Sum")
     if pkg['pgpsig']:
         validations.append("Signature")
+    builddate = dateparser.parse(pkg['builddate'])
     print("Repository     : %s" % pkg['repo'])
     print("Name           : %s" % pkg['name'])
     print("Version        : %s" % pkg['version'])
@@ -58,7 +60,7 @@ def _print_package(pkg):
     print("Download Size  : %s" % _human_readable_size(pkg['filesize']))
     print("Installed Size : %s" % _human_readable_size(pkg['size']))
     print("Packager       : %s" % pkg['packager'])
-    print("Build Date     : %s" % pkg['builddate'])
+    print("Build Date     : %s" % builddate.strftime("%c"))
     print("Validated By   : %s" % ("  ".join(validations) or "None"))
     print()
 
