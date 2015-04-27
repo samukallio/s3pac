@@ -31,6 +31,10 @@ pkgdb = PackageDatabase(
     s3_bucket_name = app.config.get('AWS_S3_BUCKET_NAME')
 )
 
+def _data_abspath(relpath):
+    root = app.config.get('DATA_ROOT', "data")
+    return os.path.join(os.getcwd(), root, relpath)
+
 # -----------------------------------------------------------------------------
 
 def _get_database_file(repo, sysarch):
@@ -40,8 +44,7 @@ def _get_database_file(repo, sysarch):
         pkgs.extend(pkgdb.find(repo=repo, arch=arch))
 
     # write package database file
-    dbfilepath = os.path.join(app.config['DATA_ROOT'],
-                              "%s.db.tar.gz" % repo)
+    dbfilepath = _data_abspath("%s.db.tar.gz" % repo)
     with open(dbfilepath, 'wb') as dbfile:
         write_database_file(dbfile, pkgs)
 
@@ -125,8 +128,7 @@ def post_package_file(repo):
         abort(401)
 
     def _save_upload(upload):
-        filename = secure_filename(upload.filename)
-        filepath = os.path.join(app.config['DATA_ROOT'], filename)
+        filepath = _data_abspath(secure_filename(upload.filename))
         upload.save(filepath)
         return filepath
 
