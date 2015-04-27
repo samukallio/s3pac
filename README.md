@@ -27,7 +27,7 @@ Set up a configuration directory at e.g. `/etc/s3pac`:
 
 Then start the app under Gunicorn using `/etc/s3pac` as the working directory:
 
-    /usr/bin/gunicorn --chdir /etc/s3pac s3pac:app
+    /usr/bin/gunicorn --chdir /etc/s3pac s3pac.wsgi:app
 
 # License
 Licensed under the MIT (Expat) license.
