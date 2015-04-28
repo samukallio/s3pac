@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+import os, sys, imp
+import boto.sdb
+import boto.s3
+from boto.exception import S3CreateError
+
+def printerr(*args):
+    print(*args, file=sys.stderr)
+
+def main(confpath="/etc/s3pac/s3pac.conf.py"):
+    if not os.path.isfile(confpath):
+        printerr("usage: s3pac-setup-aws <conf>")
+        return 1
+
+    try:
+        conf = imp.load_source('conf', confpath)
+    except PermissionError as e:
+        printerr("error: permission denied:", confpath)
+        return 1
+    except Exception as e:
+        printerr("error:", e.strerror)
+        return 1
+
+    aws_region_name = getattr(conf, 'AWS_REGION_NAME', None)
+    aws_access_key_id = getattr(conf, 'AWS_ACCESS_KEY_ID', None)
+    aws_secret_access_key = getattr(conf, 'AWS_SECRET_ACCESS_KEY', None)
+    aws_s3_bucket_name = getattr(conf, 'AWS_S3_BUCKET_NAME', None)
+    aws_sdb_domain_name = getattr(conf, 'AWS_SDB_DOMAIN_NAME', None)
+
+    if aws_region_name is None:
+        printerr("error: AWS_REGION_NAME not specified")
+        return 2
+
+    if aws_s3_bucket_name is None:
+        printerr("error: AWS_S3_BUCKET_NAME not specified")
+        return 2
+
+    if aws_sdb_domain_name is None:
+        printerr("error: AWS_SDB_DOMAIN_NAME not specified")
+        return 2
+
+    sdb = boto.sdb.connect_to_region(
+        region_name = aws_region_name,
+        aws_access_key_id = aws_access_key_id,
+        aws_secret_access_key = aws_secret_access_key
+        )
+    if not sdb:
+        printerr("error: unable to connect to simpledb")
+        return 3
+
+    s3 = boto.s3.connect_to_region(
+        region_name = aws_region_name,
+        aws_access_key_id = aws_access_key_id,
+        aws_secret_access_key = aws_secret_access_key
+        )    
+    if not s3:
+        printerr("error: unable to connect to s3")
+        return 3
+
+    try:
+        if not s3.lookup(aws_s3_bucket_name, validate=True):
+            printerr("creating s3 bucket:", aws_s3_bucket_name)
+            s3.create_bucket(aws_s3_bucket_name, location = aws_region_name)
+        else:
+            printerr("s3 bucket already exists, skipping")
+    except S3CreateError as e:
+        printerr("error: cannot create bucket:", e.message)
+        return 4
+
+    if not sdb.lookup(aws_sdb_domain_name, validate=True):
+        printerr("creating simpedb domain:", aws_sdb_domain_name)
+        sdb.create_domain(aws_sdb_domain_name)
+    else:
+        printerr("simpledb domain already exists, skipping")
+
+if __name__ == '__main__':
+    sys.exit(main(*sys.argv[1:]) or 0)
