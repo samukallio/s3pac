@@ -13,3 +13,4 @@ AWS_SECRET_ACCESS_KEY = None
 AWS_REGION_NAME = 'eu-west-1'
 AWS_SDB_DOMAIN_NAME = 's3pac'
 AWS_S3_BUCKET_NAME = 'my-s3pac-bucket'
+AWS_S3_PREFIX = 'packages'

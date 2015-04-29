@@ -28,7 +28,8 @@ pkgdb = PackageDatabase(
     secret_access_key = app.config.get('AWS_SECRET_ACCESS_KEY', None),
     region_name = app.config.get('AWS_REGION_NAME'),
     sdb_domain_name = app.config.get('AWS_SDB_DOMAIN_NAME'),
-    s3_bucket_name = app.config.get('AWS_S3_BUCKET_NAME')
+    s3_bucket_name = app.config.get('AWS_S3_BUCKET_NAME'),
+    s3_prefix = app.config.get('AWS_S3_PREFIX', "")
 )
 
 def _data_abspath(relpath):

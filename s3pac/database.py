@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from dateutil import parser as dateparser
 import boto.sdb
@@ -27,18 +28,10 @@ def _sdb_from_pkg(pkg):
 
 # -----------------------------------------------------------------------------
 
-def _pkgitemname(pkg):
-    return "%s/%s/%s" % (pkg.repo, pkg.arch, pkg.name)
-
-def _pkgkeyname(pkg):
-    return "%s/%s" % (pkg.repo, pkg.filename)
-
-# -----------------------------------------------------------------------------
-
 class PackageDatabase:
     """Package repository interface to SimpleDB and S3."""
     def __init__(self, access_key_id, secret_access_key, region_name,
-                 sdb_domain_name, s3_bucket_name):
+                 sdb_domain_name, s3_bucket_name, s3_prefix):
         # connect to simpledb
         self.sdb = boto.sdb.connect_to_region(region_name,
             aws_access_key_id=access_key_id,
@@ -52,6 +45,13 @@ class PackageDatabase:
             aws_secret_access_key=secret_access_key)
         self.s3_bucket = self.s3.get_bucket(s3_bucket_name)
         self.s3_bucket_name = s3_bucket_name
+        self.s3_prefix = s3_prefix
+
+    def _pkgitemname(self, pkg):
+        return os.path.join(pkg.repo, pkg.arch, pkg.name)
+
+    def _pkgkeyname(self, pkg):
+        return os.path.join(self.s3_prefix, pkg.repo, pkg.filename)
 
     def publish(self, repo, pkgfile, sigfile):
         """Read package archive from `pkgfile` and publish to `repo`."""
@@ -61,12 +61,13 @@ class PackageDatabase:
         pkg.publishdate = datetime.utcnow()
 
         # upload package file to s3
-        pkgkey = boto.s3.key.Key(self.s3_bucket, _pkgkeyname(pkg))
+        pkgkey = boto.s3.key.Key(self.s3_bucket, self._pkgkeyname(pkg))
         pkgfile.seek(0)
         pkgkey.set_contents_from_file(pkgfile)
 
         # insert metadata
-        self.sdb_domain.put_attributes(_pkgitemname(pkg), _sdb_from_pkg(pkg))
+        self.sdb_domain.put_attributes(self._pkgitemname(pkg),
+                                       _sdb_from_pkg(pkg))
 
         # remove previous versions if they exist
         for ppkg in self.find(repo=pkg.repo, arch=pkg.arch, name=pkg.name):
@@ -100,15 +101,15 @@ class PackageDatabase:
 
     def url(self, pkg):
         """Return a HTTP download URL for `pkg`."""
-        pkgkey = self.s3_bucket.get_key(_pkgkeyname(pkg))
+        pkgkey = self.s3_bucket.get_key(self._pkgkeyname(pkg))
         return pkgkey.generate_url(3600)
 
     def delete(self, **kwargs):
         """Delete all matching packages."""
         pkgs = self.find(**kwargs)
         for pkg in pkgs:
-            pkgkey = self.s3_bucket.get_key(_pkgkeyname(pkg))
+            pkgkey = self.s3_bucket.get_key(self._pkgkeyname(pkg))
             if pkgkey is not None:
                 pkgkey.delete()
-            self.sdb_domain.delete_attributes(_pkgitemname(pkg))
+            self.sdb_domain.delete_attributes(self._pkgitemname(pkg))
         return pkgs
