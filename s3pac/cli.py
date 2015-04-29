@@ -4,7 +4,7 @@ Usage:
   s3pac [--server=<url>] add <repo> <pkgfile> [<sigfile>]
   s3pac [--server=<url>] remove <repo> <arch> <name>
   s3pac [--server=<url>] show <repo> <arch> <name>
-  s3pac [--server=<url>] list <repo> [--full]
+  s3pac [--server=<url>] list [--full] <repo> [<key>=<value>]...
 
 Options:
   -h --help         Show this screen.
@@ -110,9 +110,17 @@ def do_show(opts):
     _print_package(response.json())
 
 def do_list(opts):
+    params = {}
+    try:
+        for keyvalue in opts['<key>=<value>']:
+            key, value = keyvalue.split('=', 1)
+            params[key] = value
+    except ValueError:
+        raise CommandException("must be <key>=<value>: %s" % keyvalue)
+
     urlpath = "/p/%s/" % opts['<repo>']
     url = _make_url(opts, urlpath)
-    response = requests.get(url)
+    response = requests.get(url, params=params)
 
     if not response.ok:
         raise CommandException("server error: %d" % response.status_code)
