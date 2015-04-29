@@ -9,22 +9,21 @@ from s3pac.package import Package, read_package_file
 
 # -----------------------------------------------------------------------------
 
-def _sdb_from_long(v):
-    return "%020d" % (v + 2**63)
+_FROM_SIMPLEDB = {
+    LongProperty: lambda v: int(v) - 2**63,
+    DateTimeProperty: dateparser.parse,
+    }
 
-def _long_from_sdb(v):
-    return int(v) - 2**63
-
-_SDB_PROPERTY_FORMATS = {
-    LongProperty: (_sdb_from_long, _long_from_sdb),
-    DateTimeProperty: (datetime.isoformat, dateparser.parse),
-}
+_TO_SIMPLEDB = {
+    LongProperty: lambda v: "%020d" % (v + 2**63),
+    DateTimeProperty: datetime.isoformat,
+    }
 
 def _pkg_from_sdb(_dict):
-    return Package.from_dict(_dict, _SDB_PROPERTY_FORMATS)
+    return Package.load(_FROM_SIMPLEDB, _dict)
 
 def _sdb_from_pkg(pkg):
-    return Package.to_dict(pkg, _SDB_PROPERTY_FORMATS)
+    return Package.store(_TO_SIMPLEDB, pkg)
 
 # -----------------------------------------------------------------------------
 
@@ -79,18 +78,21 @@ class PackageDatabase:
 
     def find(self, **kwargs):
         """Find matching packages."""
-        conds = []
-        for name, values in kwargs.items():
+        parts = []
+        conds = Package.convertdict(_TO_SIMPLEDB, kwargs)
+        for name, values in conds.items():
             if not isinstance(values, list):
                 values = [values]
-            prop = getattr(Package, name)
-            conv, _ = _SDB_PROPERTY_FORMATS.get(prop.__class__, (None, None))
             for value in values:
-                if conv:
-                    value = conv(value)
-                conds.append('`%s`="%s"' % (name, value))
+                if value.startswith('%') or value.endswith('%'):
+                    escaped = value[1:-1].replace('%', '\%')
+                    parts.append('`%s` LIKE "%s%s%s"' % \
+                        (name, value[0], escaped, value[-1]))
+                else:
+                    parts.append('`%s`="%s"' % (name, value))
         query = "SELECT * FROM `%s` WHERE %s" % \
-            (self.sdb_domain_name, " AND ".join(conds))
+            (self.sdb_domain_name, " AND ".join(parts))
+        print(query)
         results = self.sdb_domain.select(query, consistent_read=True)
         return list(map(_pkg_from_sdb, results))
 

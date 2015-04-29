@@ -1,7 +1,5 @@
 from datetime import datetime
 
-_NOCONV = (lambda v: v, lambda v: v)
-
 class Property:
     def __init__(self, default, multiple=False):
         self.default = default if not multiple else []
@@ -27,42 +25,41 @@ class ModelType(type):
         _class.__model_properties__ = propnames
 
 class Model(metaclass=ModelType):
-    def __init__(self):
+    def __init__(self, **kwargs):
         _class = self.__class__
         for name in _class.__model_properties__:
             prop = getattr(_class, name)
-            setattr(self, name, prop.default)
+            value = kwargs.get(name, prop.default)
+            setattr(self, name, value)
 
     def __str__(self):
         return "%s(%s)" % (self.__class__.__name__, self.__dict__)
 
     @classmethod
-    def to_dict(cls, model, convs):
-        if not isinstance(model, cls):
-            raise TypeError("must be a %s instance" % cls.__name__)
-        _dict = {}
-        for name in cls.__model_properties__:
-            prop = getattr(cls, name)
-            value = getattr(model, name, prop.default)
-            conv, _ = convs.get(prop.__class__, _NOCONV)
-            if prop.multiple:
-                _dict[name] = list(map(conv, value))
-            else:
-                _dict[name] = conv(value)
-        return _dict
-
-    @classmethod
-    def from_dict(cls, _dict, convs):
-        model = cls()
-        for name in cls.__model_properties__:
-            prop = getattr(cls, name)
-            value = _dict.get(name, prop.default)
-            _, conv = convs.get(prop.__class__, _NOCONV)
+    def convertdict(_class, convs, _dict):
+        result = {}
+        for name in _class.__model_properties__:
+            if name not in _dict:
+                continue
+            prop = getattr(_class, name)
+            value = _dict.get(name)
+            conv = convs.get(prop.__class__, lambda v: v)
             if prop.multiple:
                 if isinstance(value, list):
-                    setattr(model, name, list(map(conv, value)))
+                    result[name] = list(map(conv, value))
                 else:
-                    setattr(model, name, [conv(value)])
+                    result[name] = [conv(value)]
             else:
-                setattr(model, name, conv(value))
-        return model
+                if isinstance(value, list):
+                    result[name] = conv(value[0])
+                else:
+                    result[name] = conv(value)
+        return result
+
+    @classmethod
+    def load(_class, convs, _dict):
+        return _class(**_class.convertdict(convs, _dict))
+
+    @classmethod
+    def store(_class, convs, model):
+        return _class.convertdict(convs, model.__dict__)

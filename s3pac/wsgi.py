@@ -10,12 +10,12 @@ from s3pac.database import PackageDatabase
 
 # -----------------------------------------------------------------------------
 
-JSONPROPFMT = {
-    DateTimeProperty: (datetime.isoformat, dateparser.parse),
-}
+_TO_JSON = {
+    DateTimeProperty: datetime.isoformat,
+    }
 
 def _json_from_pkg(pkg):
-    return Package.to_dict(pkg, JSONPROPFMT)
+    return Package.store(_TO_JSON, pkg)
 
 # -----------------------------------------------------------------------------
 
