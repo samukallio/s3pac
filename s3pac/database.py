@@ -92,7 +92,6 @@ class PackageDatabase:
                     parts.append('`%s`="%s"' % (name, value))
         query = "SELECT * FROM `%s` WHERE %s" % \
             (self.sdb_domain_name, " AND ".join(parts))
-        print(query)
         results = self.sdb_domain.select(query, consistent_read=True)
         return list(map(_pkg_from_sdb, results))
 
