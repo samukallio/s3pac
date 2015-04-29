@@ -1,7 +1,7 @@
 """S3pac command line tool.
 
 Usage:
-  s3pac [--server=<url>] publish <repo> <pkgfile> [<sigfile>]
+  s3pac [--server=<url>] add <repo> <pkgfile> [<sigfile>]
   s3pac [--server=<url>] remove <repo> <arch> <name>
   s3pac [--server=<url>] show <repo> <arch> <name>
   s3pac [--server=<url>] list <repo> [--full]
@@ -71,7 +71,7 @@ class CommandException(Exception):
     def __init__(self, msg):
         self.msg = msg
 
-def do_publish(opts):
+def do_add(opts):
     pkgfilepath = opts['<pkgfile>']
     sigfilepath = opts['<sigfile>'] or (pkgfilepath + ".sig")
 
@@ -126,8 +126,8 @@ def do_list(opts):
 
 def main(opts):
     try:
-        if opts['publish']:
-            return do_publish(opts)
+        if opts['add']:
+            return do_add(opts)
         elif opts['remove']:
             return do_remove(opts)
         elif opts['show']:
