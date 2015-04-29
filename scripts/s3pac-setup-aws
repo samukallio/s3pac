@@ -52,7 +52,7 @@ def main(confpath="/etc/s3pac/s3pac.conf.py"):
         region_name = aws_region_name,
         aws_access_key_id = aws_access_key_id,
         aws_secret_access_key = aws_secret_access_key
-        )    
+        )
     if not s3:
         printerr("error: unable to connect to s3")
         return 3
@@ -68,7 +68,7 @@ def main(confpath="/etc/s3pac/s3pac.conf.py"):
         return 4
 
     if not sdb.lookup(aws_sdb_domain_name, validate=True):
-        printerr("creating simpedb domain:", aws_sdb_domain_name)
+        printerr("creating simpledb domain:", aws_sdb_domain_name)
         sdb.create_domain(aws_sdb_domain_name)
     else:
         printerr("simpledb domain already exists, skipping")
