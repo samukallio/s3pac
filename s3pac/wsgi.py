@@ -4,7 +4,7 @@ from dateutil import parser as dateparser
 from flask import Flask, Response, request, redirect, url_for, abort, send_file
 from werkzeug import secure_filename
 
-from s3pac.model import DateTimeProperty
+from s3pac.model import LongProperty, DateTimeProperty
 from s3pac.package import Package, write_database_file, write_signature_file
 from s3pac.database import PackageDatabase
 
@@ -14,8 +14,17 @@ _TO_JSON = {
     DateTimeProperty: datetime.isoformat,
     }
 
+_FROM_QUERY = {
+    LongProperty: int,
+    DateTimeProperty: dateparser.parse,
+    }
+
 def _json_from_pkg(pkg):
     return Package.store(_TO_JSON, pkg)
+
+def _filters_from_args(args):
+    filters = { key: args.getlist(key) for key in args.keys() }
+    return Package.convertdict(_FROM_QUERY, filters)
 
 # -----------------------------------------------------------------------------
 
@@ -86,7 +95,7 @@ def get_file(repo, arch, filename):
 @app.route("/p/<repo>/", methods=['GET'])
 def get_package_list(repo):
     """Return all packages in a repository."""
-    filters = {}
+    filters = _filters_from_args(request.args)
     filters['repo'] = repo
     pkgs = pkgdb.find(**filters)
     _json = list(map(_json_from_pkg, pkgs))
@@ -95,7 +104,7 @@ def get_package_list(repo):
 @app.route("/p/<repo>/<arch>/", methods=['GET'])
 def get_package_list_arch(repo, arch):
     """Return all packages in a repository with given architecture."""
-    filters = {}
+    filters = _filters_from_args(request.args)
     filters['repo'] = repo
     filters['arch'] = arch
     pkgs = pkgdb.find(**filters)
