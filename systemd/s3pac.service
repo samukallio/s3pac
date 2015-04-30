@@ -1,0 +1,11 @@
+[Unit]
+Description=S3pac pacman repository server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/etc/s3pac
+ExecStart=/usr/bin/gunicorn s3pac.wsgi:app
+
+[Install]
+WantedBy=multi-user.target
