@@ -31,7 +31,7 @@ def _human_readable_size(size):
     return "%.2f %s" % (size, UNITS[unit])
 
 def _make_url(opts, urlpath):
-    server = opts.get('server', DEFAULT_SERVER)
+    server = opts['--server'] or DEFAULT_SERVER
     return urlparse.urljoin(server, urlpath)
 
 def _print_package(pkg):
