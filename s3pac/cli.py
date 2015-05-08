@@ -79,14 +79,14 @@ def do_add(opts):
     if os.path.isfile(sigfilepath):
         files['signature'] = open(sigfilepath, 'rb')
 
-    url = _make_url(opts, "/p/%s/" % opts['<repo>'])
+    url = _make_url(opts, "p/%s/" % opts['<repo>'])
     response = requests.post(url, files=files)
 
     if not response.ok:
         raise CommandException("server error: %d" % response.status_code)
 
 def do_remove(opts):
-    urlpath = "/p/%s/%s/%s" % (opts['<repo>'], opts['<arch>'], opts['<name>'])
+    urlpath = "p/%s/%s/%s" % (opts['<repo>'], opts['<arch>'], opts['<name>'])
     url = _make_url(opts, urlpath)
     response = requests.delete(url)
 
@@ -97,7 +97,7 @@ def do_remove(opts):
         raise CommandException("server error: %d" % response.status_code)
 
 def do_show(opts):
-    urlpath = "/p/%s/%s/%s" % (opts['<repo>'], opts['<arch>'], opts['<name>'])
+    urlpath = "p/%s/%s/%s" % (opts['<repo>'], opts['<arch>'], opts['<name>'])
     url = _make_url(opts, urlpath)
     response = requests.get(url)
 
@@ -118,7 +118,7 @@ def do_list(opts):
     except ValueError:
         raise CommandException("must be <key>=<value>: %s" % keyvalue)
 
-    urlpath = "/p/%s/" % opts['<repo>']
+    urlpath = "p/%s/" % opts['<repo>']
     url = _make_url(opts, urlpath)
     response = requests.get(url, params=params)
 
