@@ -6,6 +6,7 @@ Implemented as a Python WSGI server using Flask and Boto.
 # Requirements
 - Python 3
 - Boto
+- Dateutil
 - Flask
 - Werkzeug
 - Docopt (CLI)
